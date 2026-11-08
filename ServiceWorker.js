@@ -1,33 +1,48 @@
-const cacheName = "DefaultCompany-Amazing Tower-1.0";
-const contentToCache = [
-    "Build/build-05.loader.js",
-    "Build/build-05.framework.js.unityweb",
-    "Build/build-05.data.unityweb",
-    "Build/build-05.wasm.unityweb",
-    "TemplateData/style.css"
 
-];
+/*
+ * Amazing Tower - Legacy Service Worker Migration
+ *
+ * Previous version used cache-first strategy and could
+ * serve outdated Unity WebGL build files.
+ *
+ * This replacement:
+ * 1. Activates immediately.
+ * 2. Removes old Amazing Tower caches.
+ * 3. Unregisters itself.
+ * 4. Allows future visitors to load directly from the server.
+ */
 
-self.addEventListener('install', function (e) {
-    console.log('[Service Worker] Install');
-    
-    e.waitUntil((async function () {
-      const cache = await caches.open(cacheName);
-      console.log('[Service Worker] Caching all: app shell and content');
-      await cache.addAll(contentToCache);
-    })());
+self.addEventListener("install", event => {
+    self.skipWaiting();
 });
 
-self.addEventListener('fetch', function (e) {
-    e.respondWith((async function () {
-      let response = await caches.match(e.request);
-      console.log(`[Service Worker] Fetching resource: ${e.request.url}`);
-      if (response) { return response; }
+self.addEventListener("activate", event => {
 
-      response = await fetch(e.request);
-      const cache = await caches.open(cacheName);
-      console.log(`[Service Worker] Caching new resource: ${e.request.url}`);
-      cache.put(e.request, response.clone());
-      return response;
+    event.waitUntil((async () => {
+
+        // Find existing browser caches.
+        const cacheNames = await caches.keys();
+
+        // Identify only Amazing Tower's old caches.
+        const oldGameCaches = cacheNames.filter(name =>
+            name.startsWith("DefaultCompany-Amazing Tower")
+        );
+
+        // Delete outdated game caches.
+        await Promise.all(
+            oldGameCaches.map(name => caches.delete(name))
+        );
+
+        // Unregister this migration service worker.
+        await self.registration.unregister();
+
+        // Complete transition for existing tabs.
+        await self.clients.claim();
+
+        console.log(
+            "[Amazing Tower] Legacy cache cleanup completed."
+        );
+
     })());
+
 });
