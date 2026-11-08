@@ -1,9 +1,9 @@
 const cacheName = "DefaultCompany-Amazing Tower-1.0";
 const contentToCache = [
-    "Build/build-04.loader.js",
-    "Build/build-04.framework.js.unityweb",
-    "Build/build-04.data.unityweb",
-    "Build/build-04.wasm.unityweb",
+    "Build/build-05.loader.js",
+    "Build/build-05.framework.js.unityweb",
+    "Build/build-05.data.unityweb",
+    "Build/build-05.wasm.unityweb",
     "TemplateData/style.css"
 
 ];
